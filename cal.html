@@ -1,0 +1,685 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>تتبع الطعام والسعرات الحرارية</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+            color: #333;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .header p {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+
+        .main-content {
+            padding: 30px;
+        }
+
+        .tabs {
+            display: flex;
+            margin-bottom: 30px;
+            border-bottom: 2px solid #eee;
+        }
+
+        .tab {
+            flex: 1;
+            padding: 15px;
+            text-align: center;
+            cursor: pointer;
+            background: #f8f9fa;
+            border: none;
+            font-size: 1.1em;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            border-radius: 10px 10px 0 0;
+            margin-left: 5px;
+        }
+
+        .tab.active {
+            background: #4CAF50;
+            color: white;
+            transform: translateY(-2px);
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+            color: #555;
+        }
+
+        input, select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 10px;
+            font-size: 16px;
+            transition: border-color 0.3s ease;
+        }
+
+        input:focus, select:focus {
+            outline: none;
+            border-color: #4CAF50;
+            box-shadow: 0 0 0 3px rgba(76, 175, 80, 0.1);
+        }
+
+        .btn {
+            background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
+            color: white;
+            padding: 12px 25px;
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(76, 175, 80, 0.3);
+        }
+
+        .btn-danger {
+            background: linear-gradient(135deg, #f44336 0%, #d32f2f 100%);
+        }
+
+        .btn-danger:hover {
+            box-shadow: 0 5px 15px rgba(244, 67, 54, 0.3);
+        }
+
+        .food-item, .meal-item {
+            background: #f8f9fa;
+            border: 1px solid #ddd;
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 15px;
+            transition: all 0.3s ease;
+        }
+
+        .food-item:hover, .meal-item:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+            border-color: #4CAF50;
+        }
+
+        .food-item h3, .meal-item h3 {
+            color: #4CAF50;
+            margin-bottom: 10px;
+            font-size: 1.3em;
+        }
+
+        .food-info {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .food-details {
+            flex: 1;
+        }
+
+        .food-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .meal-builder {
+            display: flex;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .meal-builder select, .meal-builder input {
+            flex: 1;
+        }
+
+        .meal-ingredients {
+            background: #e8f5e8;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 15px;
+        }
+
+        .ingredient-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 0;
+            border-bottom: 1px solid #ddd;
+        }
+
+        .ingredient-item:last-child {
+            border-bottom: none;
+        }
+
+        .daily-summary {
+            background: linear-gradient(135deg, #FF6B6B 0%, #4ECDC4 100%);
+            color: white;
+            padding: 25px;
+            border-radius: 15px;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .daily-summary h2 {
+            font-size: 2em;
+            margin-bottom: 10px;
+        }
+
+        .daily-summary p {
+            font-size: 1.2em;
+            opacity: 0.9;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .stat-card {
+            background: white;
+            padding: 20px;
+            border-radius: 15px;
+            text-align: center;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        .stat-card h3 {
+            color: #4CAF50;
+            font-size: 1.8em;
+            margin-bottom: 5px;
+        }
+
+        .stat-card p {
+            color: #666;
+            font-size: 1.1em;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 40px;
+            color: #666;
+        }
+
+        .empty-state img {
+            width: 100px;
+            height: 100px;
+            margin-bottom: 20px;
+            opacity: 0.5;
+        }
+
+        @media (max-width: 768px) {
+            .tabs {
+                flex-direction: column;
+            }
+            
+            .tab {
+                margin-left: 0;
+                margin-bottom: 5px;
+            }
+            
+            .meal-builder {
+                flex-direction: column;
+            }
+            
+            .food-info {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            
+            .food-actions {
+                width: 100%;
+                justify-content: flex-start;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🍎 تتبع الطعام والسعرات الحرارية</h1>
+            <p>تطبيق بسيط لتتبع وجباتك اليومية وحساب السعرات الحرارية</p>
+        </div>
+
+        <div class="main-content">
+            <div class="tabs">
+                <button class="tab active" onclick="switchTab('food-items')">العناصر الغذائية</button>
+                <button class="tab" onclick="switchTab('meals')">الوجبات</button>
+                <button class="tab" onclick="switchTab('daily-summary')">الملخص اليومي</button>
+            </div>
+
+            <!-- Food Items Tab -->
+            <div id="food-items" class="tab-content active">
+                <div class="form-group">
+                    <label for="food-name">اسم العنصر الغذائي:</label>
+                    <input type="text" id="food-name" placeholder="مثال: صدور دجاج">
+                </div>
+                <div class="form-group">
+                    <label for="food-calories">السعرات الحرارية (لكل 100 غرام):</label>
+                    <input type="number" id="food-calories" placeholder="مثال: 165">
+                </div>
+                <button class="btn" onclick="addFoodItem()">إضافة عنصر غذائي</button>
+
+                <div id="food-list">
+                    <!-- Food items will be displayed here -->
+                </div>
+            </div>
+
+            <!-- Meals Tab -->
+            <div id="meals" class="tab-content">
+                <div class="form-group">
+                    <label for="meal-name">اسم الوجبة:</label>
+                    <input type="text" id="meal-name" placeholder="مثال: وجبة الغداء">
+                </div>
+                
+                <div class="meal-builder">
+                    <select id="food-select">
+                        <option value="">اختر عنصر غذائي</option>
+                    </select>
+                    <input type="number" id="food-quantity" placeholder="الكمية (غرام)" min="1">
+                    <button class="btn" onclick="addIngredient()">إضافة للوجبة</button>
+                </div>
+
+                <div id="current-meal-ingredients" class="meal-ingredients" style="display: none;">
+                    <h3>مكونات الوجبة الحالية:</h3>
+                    <div id="ingredients-list"></div>
+                    <div style="margin-top: 15px; text-align: center;">
+                        <strong>إجمالي السعرات: <span id="meal-total-calories">0</span> سعرة حرارية</strong>
+                    </div>
+                </div>
+
+                <button class="btn" onclick="createMeal()" style="margin-top: 15px;">إنشاء الوجبة</button>
+
+                <div id="meals-list">
+                    <!-- Meals will be displayed here -->
+                </div>
+            </div>
+
+            <!-- Daily Summary Tab -->
+            <div id="daily-summary" class="tab-content">
+                <div class="daily-summary">
+                    <h2 id="daily-total-calories">0</h2>
+                    <p>إجمالي السعرات الحرارية اليوم</p>
+                </div>
+
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <h3 id="total-food-items">0</h3>
+                        <p>العناصر الغذائية</p>
+                    </div>
+                    <div class="stat-card">
+                        <h3 id="total-meals">0</h3>
+                        <p>الوجبات</p>
+                    </div>
+                    <div class="stat-card">
+                        <h3 id="avg-calories-per-meal">0</h3>
+                        <p>متوسط السعرات لكل وجبة</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Data storage
+        let foodItems = [];
+        let meals = [];
+        let currentMealIngredients = [];
+
+        // Initialize app
+        document.addEventListener('DOMContentLoaded', function() {
+            loadData();
+            updateFoodSelect();
+            displayFoodItems();
+            displayMeals();
+            updateDailySummary();
+        });
+
+        // Tab switching
+        function switchTab(tabId) {
+            document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+            
+            event.target.classList.add('active');
+            document.getElementById(tabId).classList.add('active');
+        }
+
+        // Add food item
+        function addFoodItem() {
+            const name = document.getElementById('food-name').value.trim();
+            const calories = parseFloat(document.getElementById('food-calories').value);
+
+            if (!name || !calories || calories <= 0) {
+                alert('يرجى إدخال اسم العنصر والسعرات الحرارية بشكل صحيح');
+                return;
+            }
+
+            const foodItem = {
+                id: Date.now(),
+                name: name,
+                calories: calories
+            };
+
+            foodItems.push(foodItem);
+            saveData();
+            updateFoodSelect();
+            displayFoodItems();
+            updateDailySummary();
+
+            // Clear form
+            document.getElementById('food-name').value = '';
+            document.getElementById('food-calories').value = '';
+        }
+
+        // Display food items
+        function displayFoodItems() {
+            const foodList = document.getElementById('food-list');
+            
+            if (foodItems.length === 0) {
+                foodList.innerHTML = '<div class="empty-state"><h3>لا توجد عناصر غذائية مضافة</h3><p>ابدأ بإضافة عناصر غذائية لتتبع وجباتك</p></div>';
+                return;
+            }
+
+            foodList.innerHTML = foodItems.map(item => `
+                <div class="food-item">
+                    <div class="food-info">
+                        <div class="food-details">
+                            <h3>${item.name}</h3>
+                            <p><strong>${item.calories}</strong> سعرة حرارية لكل 100 غرام</p>
+                        </div>
+                        <div class="food-actions">
+                            <button class="btn btn-danger" onclick="deleteFoodItem(${item.id})">حذف</button>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // Delete food item
+        function deleteFoodItem(id) {
+            if (confirm('هل أنت متأكد من حذف هذا العنصر؟')) {
+                foodItems = foodItems.filter(item => item.id !== id);
+                saveData();
+                updateFoodSelect();
+                displayFoodItems();
+                updateDailySummary();
+            }
+        }
+
+        // Update food select dropdown
+        function updateFoodSelect() {
+            const select = document.getElementById('food-select');
+            select.innerHTML = '<option value="">اختر عنصر غذائي</option>';
+            
+            foodItems.forEach(item => {
+                select.innerHTML += `<option value="${item.id}">${item.name}</option>`;
+            });
+        }
+
+        // Add ingredient to current meal
+        function addIngredient() {
+            const selectedFoodId = document.getElementById('food-select').value;
+            const quantity = parseFloat(document.getElementById('food-quantity').value);
+
+            if (!selectedFoodId || !quantity || quantity <= 0) {
+                alert('يرجى اختيار عنصر غذائي وإدخال الكمية');
+                return;
+            }
+
+            const foodItem = foodItems.find(item => item.id == selectedFoodId);
+            const ingredient = {
+                id: Date.now(),
+                name: foodItem.name,
+                calories: foodItem.calories,
+                quantity: quantity,
+                totalCalories: (foodItem.calories * quantity) / 100
+            };
+
+            currentMealIngredients.push(ingredient);
+            displayCurrentMealIngredients();
+
+            // Clear form
+            document.getElementById('food-select').value = '';
+            document.getElementById('food-quantity').value = '';
+        }
+
+        // Display current meal ingredients
+        function displayCurrentMealIngredients() {
+            const container = document.getElementById('current-meal-ingredients');
+            const ingredientsList = document.getElementById('ingredients-list');
+            const totalCalories = document.getElementById('meal-total-calories');
+
+            if (currentMealIngredients.length === 0) {
+                container.style.display = 'none';
+                return;
+            }
+
+            container.style.display = 'block';
+            
+            ingredientsList.innerHTML = currentMealIngredients.map(ingredient => `
+                <div class="ingredient-item">
+                    <span>${ingredient.name} - ${ingredient.quantity}غ</span>
+                    <div>
+                        <span style="margin-left: 10px;">${Math.round(ingredient.totalCalories)} سعرة</span>
+                        <button class="btn btn-danger" style="padding: 5px 10px; font-size: 12px;" onclick="removeIngredient(${ingredient.id})">حذف</button>
+                    </div>
+                </div>
+            `).join('');
+
+            const total = currentMealIngredients.reduce((sum, ingredient) => sum + ingredient.totalCalories, 0);
+            totalCalories.textContent = Math.round(total);
+        }
+
+        // Remove ingredient from current meal
+        function removeIngredient(id) {
+            currentMealIngredients = currentMealIngredients.filter(ingredient => ingredient.id !== id);
+            displayCurrentMealIngredients();
+        }
+
+        // Create meal
+        function createMeal() {
+            const mealName = document.getElementById('meal-name').value.trim();
+
+            if (!mealName) {
+                alert('يرجى إدخال اسم الوجبة');
+                return;
+            }
+
+            if (currentMealIngredients.length === 0) {
+                alert('يرجى إضافة مكونات للوجبة');
+                return;
+            }
+
+            const meal = {
+                id: Date.now(),
+                name: mealName,
+                ingredients: [...currentMealIngredients],
+                totalCalories: currentMealIngredients.reduce((sum, ingredient) => sum + ingredient.totalCalories, 0),
+                date: new Date().toDateString()
+            };
+
+            meals.push(meal);
+            saveData();
+            displayMeals();
+            updateDailySummary();
+
+            // Clear form
+            document.getElementById('meal-name').value = '';
+            currentMealIngredients = [];
+            displayCurrentMealIngredients();
+        }
+
+        // Display meals
+        function displayMeals() {
+            const mealsList = document.getElementById('meals-list');
+            
+            if (meals.length === 0) {
+                mealsList.innerHTML = '<div class="empty-state"><h3>لا توجد وجبات مسجلة</h3><p>ابدأ بإنشاء وجبة من العناصر الغذائية المتاحة</p></div>';
+                return;
+            }
+
+            mealsList.innerHTML = meals.map(meal => `
+                <div class="meal-item">
+                    <div class="food-info">
+                        <div class="food-details">
+                            <h3>${meal.name}</h3>
+                            <p><strong>${Math.round(meal.totalCalories)}</strong> سعرة حرارية</p>
+                            <p>المكونات: ${meal.ingredients.map(ing => `${ing.name} (${ing.quantity}غ)`).join(', ')}</p>
+                        </div>
+                        <div class="food-actions">
+                            <button class="btn btn-danger" onclick="deleteMeal(${meal.id})">حذف</button>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // Delete meal
+        function deleteMeal(id) {
+            if (confirm('هل أنت متأكد من حذف هذه الوجبة؟')) {
+                meals = meals.filter(meal => meal.id !== id);
+                saveData();
+                displayMeals();
+                updateDailySummary();
+            }
+        }
+
+        // Update daily summary
+        function updateDailySummary() {
+            const today = new Date().toDateString();
+            const todayMeals = meals.filter(meal => meal.date === today);
+            const totalCalories = todayMeals.reduce((sum, meal) => sum + meal.totalCalories, 0);
+            const avgCaloriesPerMeal = todayMeals.length > 0 ? totalCalories / todayMeals.length : 0;
+
+            document.getElementById('daily-total-calories').textContent = Math.round(totalCalories);
+            document.getElementById('total-food-items').textContent = foodItems.length;
+            document.getElementById('total-meals').textContent = todayMeals.length;
+            document.getElementById('avg-calories-per-meal').textContent = Math.round(avgCaloriesPerMeal);
+        }
+
+        // Save data to localStorage
+        function saveData() {
+            const data = {
+                foodItems: foodItems,
+                meals: meals
+            };
+            // In a real app, you would save to a database
+            // For this demo, we'll just store in memory
+        }
+
+        // Load data from localStorage
+        function loadData() {
+            // In a real app, you would load from a database
+            // For this demo, we'll use sample data
+            if (foodItems.length === 0) {
+                foodItems = [
+                { id: 1, name: 'برقوق', calories: 46 },
+  { id: 2, name: 'مكسرات', calories: 617 },
+  { id: 3, name: 'توست', calories: 293 },
+  { id: 4, name: 'جبنة بيضة بالقشطة', calories: 229 },
+  { id: 5, name: 'جبنة رومي', calories: 407 },
+  { id: 6, name: 'كبدة بقري', calories: 150 },
+  { id: 7, name: 'رز أبيض (نيء)', calories: 350 },
+  { id: 8, name: 'بصل', calories: 40 },
+  { id: 9, name: 'فلفل حار', calories: 30 },
+  { id: 10, name: 'ثوم', calories: 149 },
+  { id: 11, name: 'دجاج (مشوي/مسلوق)', calories: 165 },
+  { id: 12, name: 'زيت زيتون بكر ممتاز عضوي', calories: 884 },
+  { id: 13, name: 'طماطم', calories: 18 },
+  { id: 14, name: 'شابورة', calories: 395 } ,
+  { id: 1, name: 'برقوق', calories: 46 },
+  { id: 2, name: 'مكسرات', calories: 617 },
+  { id: 3, name: 'توست', calories: 293 },
+  { id: 4, name: 'جبنة بيضة بالقشطة', calories: 229 },
+  { id: 5, name: 'جبنة رومي', calories: 407 },
+  { id: 6, name: 'كبدة بقري', calories: 150 },
+  { id: 7, name: 'رز أبيض (نيء)', calories: 350 },
+  { id: 8, name: 'رز بسمتي (نيء)', calories: 348 },
+  { id: 9, name: 'مكرونة (نيئة)', calories: 371 },
+  { id: 10, name: 'بصل', calories: 40 },
+  { id: 11, name: 'طماطم', calories: 18 },
+  { id: 12, name: 'فلفل حار', calories: 30 },
+  { id: 13, name: 'ثوم', calories: 149 },
+  { id: 14, name: 'دجاج (مشوي/مسلوق)', calories: 165 },
+  { id: 15, name: 'لحم بقري مشوي', calories: 250 },
+  { id: 16, name: 'لحم مفروم (كفتة)', calories: 280 },
+  { id: 17, name: 'زيت زيتون بكر ممتاز عضوي', calories: 884 },
+  { id: 18, name: 'بيض مسلوق', calories: 155 },
+  { id: 19, name: 'لبن خالي الدسم', calories: 35 },
+  { id: 20, name: 'كاكاو خام بدون سكر', calories: 228 },
+  { id: 21, name: 'بسطرمة', calories: 250 },
+  { id: 22, name: 'تونة مصفاة من الزيت', calories: 116 },
+  { id: 23, name: 'موز', calories: 89 },
+  { id: 24, name: 'بطيخ', calories: 30 },
+  { id: 25, name: 'شمام', calories: 34 },
+  { id: 26, name: 'كيوي', calories: 41 },
+  { id: 27, name: 'تفاح', calories: 52 },
+  { id: 28, name: 'عنب', calories: 69 },
+  { id: 29, name: 'فراولة', calories: 32 },
+  { id: 30, name: 'أناناس', calories: 50 },
+  { id: 31, name: 'زبادي خالي الدسم', calories: 40 },
+  { id: 32, name: 'شوفان', calories: 389 },
+  { id: 33, name: 'خبز أسمر', calories: 247 },
+  { id: 34, name: 'عدس مطبوخ', calories: 116 },
+  { id: 35, name: 'فول مدمس بدون زيت', calories: 110 }
+
+                ];
+            }
+        }
+    </script>
+</body>
+</html>
